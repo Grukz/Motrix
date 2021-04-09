@@ -10,18 +10,15 @@
 <script>
   export default {
     name: 'mo-content-preference',
-    computed: {
-    },
-    components: {
-    },
-    methods: {
+    created () {
+      this.$store.dispatch('preference/fetchPreference')
     }
   }
 </script>
 
 <style lang="scss">
   .form-preference {
-    padding-right: 7%;
+    padding: 16px 7% 64px 0;
     .el-switch__label {
       font-weight: normal;
       color: $--color-text-regular;
@@ -59,16 +56,13 @@
     }
   }
   .form-actions {
-    position: fixed;
+    position: sticky;
     bottom: 0;
     left: auto;
     z-index: 10;
     width: -webkit-fill-available;
     box-sizing: border-box;
-    padding: 24px 36px;
-    margin-left: -36px;
-    // aside.width + subnav.width + padding-left + scrollbar.width
-    margin-right: 322px;
+    padding: 24px 36px 24px 0;
   }
   .action-link {
     cursor: pointer;

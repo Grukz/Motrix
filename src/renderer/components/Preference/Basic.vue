@@ -37,8 +37,14 @@
               {{ $t('preferences.auto-hide-window') }}
             </el-checkbox>
           </el-col>
+          <el-col v-if="isMac" class="form-item-sub" :span="16">
+            <el-checkbox v-model="form.traySpeedometer">
+              {{ $t('preferences.tray-speedometer') }}
+            </el-checkbox>
+          </el-col>
         </el-form-item>
         <el-form-item
+          v-if="isMac"
           :label="`${$t('preferences.run-mode')}: `"
           :label-width="formLabelWidth"
         >
@@ -78,7 +84,7 @@
           <el-col
             class="form-item-sub"
             :span="24"
-            v-if="!isLinux()"
+            v-if="!isLinux"
           >
             <el-checkbox v-model="form.openAtLogin">
               {{ $t('preferences.open-at-login') }}
@@ -99,14 +105,14 @@
           :label="`${$t('preferences.default-dir')}: `"
           :label-width="formLabelWidth"
         >
-          <el-input placeholder="" v-model="downloadDir" :readonly="isMas()">
+          <el-input placeholder="" v-model="form.dir" :readonly="isMas">
             <mo-select-directory
-              v-if="isRenderer()"
+              v-if="isRenderer"
               slot="append"
               @selected="onDirectorySelected"
             />
           </el-input>
-          <div class="el-form-item__info" v-if="isMas()" style="margin-top: 8px;">
+          <div class="el-form-item__info" v-if="isMas" style="margin-top: 8px;">
             {{ $t('preferences.mas-default-dir-tips') }}
           </div>
         </el-form-item>
@@ -138,6 +144,44 @@
           </el-col>
         </el-form-item>
         <el-form-item
+          :label="`${$t('preferences.bt-settings')}: `"
+          :label-width="formLabelWidth"
+        >
+          <el-col class="form-item-sub" :span="24">
+            <el-switch
+              v-model="form.keepSeeding"
+              :active-text="$t('preferences.keep-seeding')"
+              @change="onKeepSeedingChange"
+            >
+            </el-switch>
+          </el-col>
+          <el-col class="form-item-sub" :span="24" v-if="!form.keepSeeding">
+            {{ $t('preferences.seed-ratio') }}
+            <el-input-number
+              v-model="form.seedRatio"
+              controls-position="right"
+              :min="1"
+              :max="100"
+              :step="0.1"
+              :label="$t('preferences.seed-ratio')">
+            </el-input-number>
+          </el-col>
+          <el-col class="form-item-sub" :span="24" v-if="!form.keepSeeding">
+            {{ $t('preferences.seed-time') }}
+            ({{ $t('preferences.seed-time-unit') }})
+            <el-input-number
+              v-model="form.seedTime"
+              controls-position="right"
+              :min="60"
+              :max="525600"
+              :step="1"
+              :label="$t('preferences.seed-time')">
+            </el-input-number>
+          </el-col>
+          <div class="el-form-item__info" style="margin-top: 8px;">
+          </div>
+        </el-form-item>
+        <el-form-item
           :label="`${$t('preferences.task-manage')}: `"
           :label-width="formLabelWidth"
         >
@@ -154,10 +198,10 @@
           <el-col class="form-item-sub" :span="24">
             {{ $t('preferences.max-connection-per-server') }}
             <el-input-number
-              v-model="form.split"
+              v-model="form.maxConnectionPerServer"
               controls-position="right"
               :min="1"
-              :max="form.maxConnectionPerServer"
+              :max="form.engineMaxConnectionPerServer"
               :label="$t('preferences.max-connection-per-server')">
             </el-input-number>
           </el-col>
@@ -174,6 +218,11 @@
           <el-col class="form-item-sub" :span="24">
             <el-checkbox v-model="form.taskNotification">
               {{ $t('preferences.task-completed-notify') }}
+            </el-checkbox>
+          </el-col>
+          <el-col class="form-item-sub" :span="24">
+            <el-checkbox v-model="form.noConfirmBeforeDeleteTask">
+              {{ $t('preferences.no-confirm-before-delete-task') }}
             </el-checkbox>
           </el-col>
         </el-form-item>
@@ -204,7 +253,6 @@
   import ThemeSwitcher from '@/components/Preference/ThemeSwitcher'
   import { availableLanguages, getLanguage } from '@shared/locales'
   import { getLocaleManager } from '@/components/Locale'
-  import { prettifyDir } from '@/components/Native/utils'
   import {
     calcFormLabelWidth,
     checkIsNeedRestart,
@@ -212,43 +260,53 @@
   } from '@shared/utils'
   import { APP_RUN_MODE } from '@shared/constants'
 
-  const initialForm = (config) => {
+  const initForm = (config) => {
     const {
+      autoHideWindow,
       dir,
+      engineMaxConnectionPerServer,
       hideAppMenu,
+      keepSeeding,
       keepWindowState,
       locale,
       maxConcurrentDownloads,
       maxConnectionPerServer,
-      maxOverallUploadLimit,
       maxOverallDownloadLimit,
+      maxOverallUploadLimit,
       newTaskShowDownloading,
+      noConfirmBeforeDeleteTask,
       openAtLogin,
-      autoHideWindow,
       resumeAllWhenAppLaunched,
       runMode,
-      split,
+      seedRatio,
+      seedTime,
       taskNotification,
-      theme
+      theme,
+      traySpeedometer
     } = config
     const result = {
+      autoHideWindow,
       continue: config.continue,
       dir,
+      engineMaxConnectionPerServer,
       hideAppMenu,
+      keepSeeding,
       keepWindowState,
       locale,
       maxConcurrentDownloads,
       maxConnectionPerServer,
-      maxOverallUploadLimit,
       maxOverallDownloadLimit,
+      maxOverallUploadLimit,
       newTaskShowDownloading,
+      noConfirmBeforeDeleteTask,
       openAtLogin,
-      autoHideWindow,
       resumeAllWhenAppLaunched,
       runMode,
-      split,
+      seedRatio,
+      seedTime,
       taskNotification,
-      theme
+      theme,
+      traySpeedometer
     }
     return result
   }
@@ -262,7 +320,7 @@
     },
     data () {
       const { locale } = this.$store.state.preference.config
-      const form = initialForm(this.$store.state.preference.config)
+      const form = initForm(this.$store.state.preference.config)
       const formOriginal = cloneDeep(form)
 
       return {
@@ -274,6 +332,10 @@
       }
     },
     computed: {
+      isRenderer: () => is.renderer(),
+      isMac: () => is.macOS(),
+      isMas: () => is.mas(),
+      isLinux () { return is.linux() },
       title () {
         return this.$t('preferences.basic')
       },
@@ -300,6 +362,10 @@
             value: '128K'
           },
           {
+            label: '256 KB/s',
+            value: '256K'
+          },
+          {
             label: '512 KB/s',
             value: '512K'
           },
@@ -308,16 +374,28 @@
             value: '1M'
           },
           {
+            label: '2 MB/s',
+            value: '2M'
+          },
+          {
+            label: '3 MB/s',
+            value: '3M'
+          },
+          {
             label: '5 MB/s',
             value: '5M'
           },
           {
             label: '10 MB/s',
             value: '10M'
+          },
+          {
+            label: '20 MB/s',
+            value: '20M'
           }
         ]
       },
-      subnavs: function () {
+      subnavs () {
         return [
           {
             key: 'basic',
@@ -339,27 +417,25 @@
       showHideAppMenuOption () {
         return is.windows() || is.linux()
       },
-      downloadDir () {
-        return prettifyDir(this.form.dir)
-      },
       ...mapState('preference', {
         config: state => state.config
       })
     },
     methods: {
-      isRenderer: is.renderer,
-      isMas: is.mas,
-      isLinux: is.linux,
       handleLocaleChange (locale) {
         const lng = getLanguage(locale)
         getLocaleManager().changeLanguage(lng)
         this.$electron.ipcRenderer.send('command',
-          'application:change-locale', lng)
+                                        'application:change-locale', lng)
       },
       handleThemeChange (theme) {
         this.form.theme = theme
         this.$electron.ipcRenderer.send('command',
-          'application:change-theme', theme)
+                                        'application:change-theme', theme)
+      },
+      onKeepSeedingChange (enable) {
+        this.form.seedRatio = enable ? 0 : 1
+        this.form.seedTime = enable ? 525600 : 60
       },
       onDirectorySelected (dir) {
         this.form.dir = dir
@@ -367,14 +443,14 @@
       syncFormConfig () {
         this.$store.dispatch('preference/fetchPreference')
           .then((config) => {
-            this.form = initialForm(config)
+            this.form = initForm(config)
             this.formOriginal = cloneDeep(this.form)
           })
       },
       submitForm (formName) {
         this.$refs[formName].validate((valid) => {
           if (!valid) {
-            console.log('error submit!!')
+            console.log('[Motrix] preference form valid:', valid)
             return false
           }
 
@@ -383,7 +459,7 @@
           const data = {
             ...changed
           }
-          console.log('changed====》', data)
+          console.log('[Motrix] preference changed data:', data)
 
           this.$store.dispatch('preference/save', data)
             .then(() => {
@@ -395,19 +471,23 @@
               this.$msg.success(this.$t('preferences.save-fail-message'))
             })
 
-          if (this.isRenderer()) {
+          if (this.isRenderer) {
             this.$electron.ipcRenderer.send('command',
-              'application:open-at-login', openAtLogin)
+                                            'application:open-at-login', openAtLogin)
 
-            this.$electron.ipcRenderer.send('command',
-              'application:toggle-dock', runMode === APP_RUN_MODE.STANDARD)
-
-            this.$electron.ipcRenderer.send('command',
-              'application:auto-hide-window', autoHideWindow)
-
-            if (checkIsNeedRestart(changed)) {
+            if ('runMode' in changed) {
               this.$electron.ipcRenderer.send('command',
-                'application:relaunch')
+                                              'application:toggle-dock', runMode === APP_RUN_MODE.STANDARD)
+            }
+
+            if ('autoHideWindow' in changed) {
+              this.$electron.ipcRenderer.send('command',
+                                              'application:auto-hide-window', autoHideWindow)
+            }
+
+            if (checkIsNeedRestart(data)) {
+              this.$electron.ipcRenderer.send('command',
+                                              'application:relaunch')
             }
           }
         })

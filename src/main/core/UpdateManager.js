@@ -1,10 +1,11 @@
 import { EventEmitter } from 'events'
+import { resolve } from 'path'
 import { dialog } from 'electron'
 import is from 'electron-is'
 import { autoUpdater } from 'electron-updater'
-import { resolve } from 'path'
+
 import logger from './Logger'
-import { getI18n } from '@/ui/Locale'
+import { getI18n } from '../ui/Locale'
 
 if (is.dev()) {
   autoUpdater.updateConfigPath = resolve(__dirname, '../../../app-update.yml')
@@ -43,13 +44,11 @@ export default class UpdateManager extends EventEmitter {
 
     if (this.autoCheckData.checkEnable) {
       this.autoCheckData.userCheck = false
-      this.options.setCheckTime.setUserConfig('last-check-update-time', Date.now())
       this.updater.checkForUpdates()
     }
   }
 
   check () {
-    this.options.setCheckTime.setUserConfig('last-check-update-time', Date.now())
     this.autoCheckData.userCheck = true
     this.updater.checkForUpdates()
   }

@@ -28,22 +28,22 @@
       }
     },
     computed: {
-      win: function () {
+      win () {
         return this.$electron.remote.getCurrentWindow()
       }
     },
     methods: {
-      handleMinimize: function () {
+      handleMinimize () {
         this.win.minimize()
       },
-      handleMaximize: function () {
+      handleMaximize () {
         if (this.win.isMaximized()) {
           this.win.unmaximize()
         } else {
           this.win.maximize()
         }
       },
-      handleClose: function () {
+      handleClose () {
         this.win.close()
       }
     }
@@ -73,9 +73,11 @@
     padding: 0;
     margin: 0;
     z-index: 5100;
+    font-size: 0;
     > li {
       display: inline-block;
-      padding: 5px 15px;
+      padding: 5px 18px;
+      font-size: 16px;
       margin: 0;
       color: $--titlebar-actions-color;
       &:hover {

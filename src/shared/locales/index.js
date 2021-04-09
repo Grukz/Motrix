@@ -7,12 +7,20 @@
  */
 export const availableLanguages = [
   {
+    value: 'bg',
+    label: 'Българският език'
+  },
+  {
     value: 'ca',
     label: 'Català'
   },
   {
     value: 'de',
     label: 'Deutsch'
+  },
+  {
+    value: 'el',
+    label: 'Ελληνικά'
   },
   {
     value: 'en-US',
@@ -31,12 +39,28 @@ export const availableLanguages = [
     label: 'Français'
   },
   {
+    value: 'hu',
+    label: 'Hungarian'
+  },
+  {
+    value: 'id',
+    label: 'Indonesia'
+  },
+  {
+    value: 'it',
+    label: 'Italiano'
+  },
+  {
     value: 'ja',
     label: '日本語'
   },
   {
     value: 'ko',
     label: '한국어'
+  },
+  {
+    value: 'pl',
+    label: 'Polski'
   },
   {
     value: 'pt-BR',
@@ -47,8 +71,16 @@ export const availableLanguages = [
     label: 'Русский'
   },
   {
+    value: 'ro',
+    label: 'Română'
+  },
+  {
     value: 'tr',
     label: 'Türkçe'
+  },
+  {
+    value: 'vi',
+    label: 'Tiếng Việt'
   },
   {
     value: 'zh-CN',

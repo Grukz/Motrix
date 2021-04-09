@@ -7,8 +7,7 @@ const chalk = require('chalk')
 const del = require('del')
 const { spawn } = require('child_process')
 const webpack = require('webpack')
-const Multispinner = require('multispinner')
-
+const Multispinner = require('@motrix/multispinner')
 
 const mainConfig = require('./webpack.main.config')
 const rendererConfig = require('./webpack.renderer.config')
@@ -28,7 +27,7 @@ if (process.env.BUILD_TARGET === 'clean') {
 }
 
 function clean () {
-  del.sync(['build/*', '!build/icons', '!build/icons/icon.*'])
+  del.sync(['release/*', '!.gitkeep'])
   console.log(`\n${doneLog}\n`)
   process.exit()
 }

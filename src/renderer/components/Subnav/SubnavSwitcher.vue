@@ -13,27 +13,26 @@
 </template>
 
 <script>
-export default {
-  name: 'mo-subnav-switcher',
-  props: {
-    title: {
-      type: String
+  export default {
+    name: 'mo-subnav-switcher',
+    props: {
+      title: {
+        type: String
+      },
+      subnavs: {
+        type: Array
+      }
     },
-    subnavs: {
-      type: Array
-    }
-  },
-  methods: {
-    handleRoute (route) {
-      console.log('route=====>', route)
-      this.$router.push({
-        path: route
-      }).catch(err => {
-        console.log(err)
-      })
+    methods: {
+      handleRoute (route) {
+        this.$router.push({
+          path: route
+        }).catch(err => {
+          console.log(err)
+        })
+      }
     }
   }
-}
 </script>
 
 <style lang='scss'>

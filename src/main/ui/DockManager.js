@@ -1,6 +1,9 @@
 import is from 'electron-is'
 import { EventEmitter } from 'events'
 import { app } from 'electron'
+
+import { bytesToSize } from '@shared/utils'
+
 import {
   APP_RUN_MODE
 } from '@shared/constants'
@@ -12,25 +15,48 @@ export default class DockManager extends EventEmitter {
     super()
     this.options = options
     const { runMode } = this.options
-    console.log('DockManager options', this.options)
     if (runMode !== APP_RUN_MODE.STANDARD) {
       this.hide()
     }
   }
 
-  show = isMac ? () => {
-    return app.dock.show()
-  } : () => {}
+  show = isMac
+    ? () => {
+      if (app.dock.isVisible()) {
+        return
+      }
 
-  hide = isMac ? () => {
-    app.dock.hide()
-  } : () => {}
+      return app.dock.show()
+    }
+    : () => {}
 
-  setBadge = isMac ? (text) => {
-    app.dock.setBadge(text)
-  } : (text) => {}
+  hide = isMac
+    ? () => {
+      if (!app.dock.isVisible()) {
+        return
+      }
 
-  openDock = isMac ? (path) => {
-    app.dock.downloadFinished(path)
-  } : (path) => {}
+      app.dock.hide()
+    }
+    : () => {}
+
+  setBadge = isMac
+    ? (text) => {
+      app.dock.setBadge(text)
+    }
+    : (text) => {}
+
+  handleSpeedChange = isMac
+    ? (speed) => {
+      const { downloadSpeed } = speed
+      const text = downloadSpeed > 0 ? `${bytesToSize(downloadSpeed)}/s` : ''
+      this.setBadge(text)
+    }
+    : (text) => {}
+
+  openDock = isMac
+    ? (path) => {
+      app.dock.downloadFinished(path)
+    }
+    : (path) => {}
 }
